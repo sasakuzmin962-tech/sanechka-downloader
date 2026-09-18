@@ -9,7 +9,7 @@ public sealed class MainForm : Form
     private readonly Label pageTitle = new();
     private readonly Label online = new();
     private readonly Label notificationBadge = new();
-    private readonly Timer heartbeat = new();
+    private readonly System.Windows.Forms.Timer heartbeat = new();
     private readonly List<Button> nav = new();
 
     public MainForm(UserRecord currentUser)
