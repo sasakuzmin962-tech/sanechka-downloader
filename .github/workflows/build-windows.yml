@@ -1,0 +1,56 @@
+name: Build Sanechka Hub 3.0
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Получить исходники
+        uses: actions/checkout@v4
+
+      - name: Установить .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Восстановить зависимости
+        run: dotnet restore Client/SanechkaHub.Client.csproj
+
+      - name: Проверить сборку
+        run: dotnet build Client/SanechkaHub.Client.csproj -c Release --no-restore
+
+      - name: Создать Windows EXE
+        run: >
+          dotnet publish Client/SanechkaHub.Client.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          --no-restore
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Упаковать программу
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          Compress-Archive `
+            -Path publish\* `
+            -DestinationPath release\SanechkaHub-3.0-Windows-x64.zip
+
+      - name: Загрузить готовую программу
+        uses: actions/upload-artifact@v4
+        with:
+          name: SanechkaHub-3.0-Windows-x64
+          path: release\SanechkaHub-3.0-Windows-x64.zip
+          if-no-files-found: error
